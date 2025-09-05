@@ -54,4 +54,5 @@ func webprocskill(w http.ResponseWriter, req *http.Request) {
 	}
 	fmt.Fprintf(w, "killed %d", pid)
 	log.Println("/procs/kill", pid)
+	log.Println("Test")
 }
