@@ -9,7 +9,7 @@ import (
 const DBHost string = "http://localhost:8181"
 const DBName string = "load"
 const DBToken string = "apiv3_9rdZKWDNT9DcuIli9W6R9ePr9KpeRXTkWMktG_1B5r504DRNMsYviUUz5107Hq1K9C4xmIvJDo7YayM1nd_Wsg"
-const ServerURL string = "http://192.168.65.21:8080"
+const ServerURL string = "http://172.16.4.78:8080"
 const DEBUG bool = false
 
 func main() {
@@ -34,8 +34,8 @@ func main() {
 	http.HandleFunc("GET /load", webload)
 	http.HandleFunc("GET /procs", webprocs)
 	http.HandleFunc("GET /procs/{id}", webprocsbypid)
-    // Kill process by pid (simple GET)
-    http.HandleFunc("GET /procs/kill/{pid}", webprocskill)
+	// Kill process by pid (simple GET)
+	http.HandleFunc("GET /procs/kill/{pid}", webprocskill)
 	http.HandleFunc("GET /disks", webdisk)
 	http.HandleFunc("GET /nics", webnics)
 	http.HandleFunc("GET /mem", webmem)

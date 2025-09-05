@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-const ServerURL string = "http://desktop:8080"
+const ServerURL string = "http://172.16.4.78:8080"
 const DEBUG bool = false
 
 //var client *influxdb3.Client
@@ -13,7 +13,7 @@ const DEBUG bool = false
 func main() {
 	http.HandleFunc("GET /html/nics", htmlnics)
 	http.HandleFunc("GET /html/disks", htmldisks)
-	http.HandleFunc("GET /html/load", htmlload)
+	http.HandleFunc("GET /html/	", htmlload)
 	http.HandleFunc("GET /html/procs", htmlprocs)
 	http.HandleFunc("GET /html/cpus", htmlcpus)
 	http.HandleFunc("GET /html/memory", htmlmem)
