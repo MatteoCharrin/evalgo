@@ -1,0 +1,25 @@
+# Go
+bin/
+*.exe
+*.test
+*.out
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# PHP / WordPress
+wp-content/uploads/
+vendor/
+.env
+
+# Docker
+*.log
+docker-compose.override.yml
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
