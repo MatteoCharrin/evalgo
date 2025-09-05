@@ -34,6 +34,8 @@ func main() {
 	http.HandleFunc("GET /load", webload)
 	http.HandleFunc("GET /procs", webprocs)
 	http.HandleFunc("GET /procs/{id}", webprocsbypid)
+    // Kill process by pid (simple GET)
+    http.HandleFunc("GET /procs/kill/{pid}", webprocskill)
 	http.HandleFunc("GET /disks", webdisk)
 	http.HandleFunc("GET /nics", webnics)
 	http.HandleFunc("GET /mem", webmem)

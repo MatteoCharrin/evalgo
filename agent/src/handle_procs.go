@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"syscall"
 )
 
 func webprocs(w http.ResponseWriter, req *http.Request) {
@@ -37,4 +38,20 @@ func webprocsbypid(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(j)
 	log.Println("/procs/ID")
+}
+
+// webprocskill: kill process {pid} simply (GET)
+func webprocskill(w http.ResponseWriter, req *http.Request) {
+	pidStr := req.PathValue("pid")
+	pid, err := strconv.Atoi(pidStr)
+	if err != nil || pid <= 0 {
+		fmt.Fprintf(w, "pid invalide")
+		return
+	}
+	if err := syscall.Kill(pid, syscall.SIGKILL); err != nil {
+		fmt.Fprintf(w, "erreur: %v", err)
+		return
+	}
+	fmt.Fprintf(w, "killed %d", pid)
+	log.Println("/procs/kill", pid)
 }
