@@ -1,0 +1,17 @@
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB3 (Metrics)
+    uid: influxdb3_metrics
+    type: influxdb
+    access: proxy
+    url: http://172.16.4.78:8181
+    basicAuth: true
+    isDefault: false
+    jsonData:
+      version: InfluxQL
+      dbName: metrics
+      httpMode: POST
+      httpHeaderName1: "Authorization"
+    secureJsonData:
+      httpHeaderValue1: "Token apiv3_9rdZKWDNT9DcuIli9W6R9ePr9KpeRXTkWMktG_1B5r504DRNMsYviUUz5107Hq1K9C4xmIvJDo7YayM1nd_Wsg"

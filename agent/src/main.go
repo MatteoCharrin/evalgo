@@ -6,11 +6,11 @@ import (
 	"net/http"
 )
 
-const DBHost string = "http://localhost:8181"
-const DBName string = "load"
+const DBHost string = "http://172.16.4.78:8181"
+const DBName string = "metrics"
 const DBToken string = "apiv3_9rdZKWDNT9DcuIli9W6R9ePr9KpeRXTkWMktG_1B5r504DRNMsYviUUz5107Hq1K9C4xmIvJDo7YayM1nd_Wsg"
 const ServerURL string = "http://172.16.4.78:8080"
-const DEBUG bool = false
+const DEBUG bool = true
 
 func main() {
 	// Connexion InfluxDB
@@ -27,6 +27,8 @@ func main() {
 	go goProcs()
 	go goNics()
 	go goMem()
+	// Flush vers InfluxDB pour toutes les métriques
+	go goInflux(client)
 
 	http.HandleFunc("GET /cpu", webcpu)
 	http.HandleFunc("GET /cpu/{id}", webcpubyid)

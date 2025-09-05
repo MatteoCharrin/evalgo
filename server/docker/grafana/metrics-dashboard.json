@@ -1,0 +1,106 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "liveNow": false,
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["eval", "metrics"],
+  "timezone": "",
+  "title": "Eval — Système (Metrics)",
+  "description": "Tableau de bord système pour l’agent eval: charge, CPU (total et par cœur), mémoire, disques, réseau et processus. Source: base InfluxDB ‘metrics’.",
+  "uid": "eval-metrics",
+  "version": 1,
+  "refresh": "5s",
+  "time": {"from": "now-6h", "to": "now"},
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Charge système — moyennes 1/5/15 min",
+      "description": "Moyennes de charge sur 1, 5 et 15 minutes (load_avg).",
+      "datasource": {"type": "influxdb", "uid": "dex5m8p7kqc5cf"},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "targets": [
+        {"refId": "A", "query": "SELECT mean(\"load1\") FROM \"load_avg\" WHERE $timeFilter GROUP BY time($__interval) fill(null)", "rawQuery": true},
+        {"refId": "B", "query": "SELECT mean(\"load5\") FROM \"load_avg\" WHERE $timeFilter GROUP BY time($__interval) fill(null)", "rawQuery": true},
+        {"refId": "C", "query": "SELECT mean(\"load15\") FROM \"load_avg\" WHERE $timeFilter GROUP BY time($__interval) fill(null)", "rawQuery": true}
+      ],
+      "fieldConfig": {"defaults": {"unit": "none"}, "overrides": []}
+    },
+    {
+      "type": "gauge",
+      "title": "Mémoire — % utilisé",
+      "description": "Pourcentage de mémoire utilisée (mem.used_percent).",
+      "datasource": {"type": "influxdb", "uid": "dex5m8p7kqc5cf"},
+      "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0},
+      "targets": [
+        {"refId": "A", "query": "SELECT mean(\"used_percent\") FROM \"mem\" WHERE $timeFilter", "rawQuery": true}
+      ],
+      "fieldConfig": {"defaults": {"unit": "percent", "min": 0, "max": 100}, "overrides": []}
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU — utilisation totale (moyenne des cœurs)",
+      "description": "Moyenne des pourcentages par cœur (cpu_usage.percent).",
+      "datasource": {"type": "influxdb", "uid": "dex5m8p7kqc5cf"},
+      "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0},
+      "targets": [
+        {"refId": "A", "query": "SELECT mean(\"percent\") FROM \"cpu_usage\" WHERE $timeFilter GROUP BY time($__interval) fill(null)", "rawQuery": true}
+      ],
+      "fieldConfig": {"defaults": {"unit": "percent"}, "overrides": []}
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU — utilisation par cœur",
+      "description": "Pourcentage par cœur (cpu_usage.percent), groupé par core.",
+      "datasource": {"type": "influxdb", "uid": "dex5m8p7kqc5cf"},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "targets": [
+        {"refId": "A", "query": "SELECT mean(\"percent\") FROM \"cpu_usage\" WHERE $timeFilter GROUP BY time($__interval), \"core\" fill(null)", "rawQuery": true}
+      ],
+      "fieldConfig": {"defaults": {"unit": "percent"}, "overrides": []}
+    },
+    {
+      "type": "table",
+      "title": "Systèmes de fichiers — occupation",
+      "description": "Dernières valeurs d’utilisation par point de montage (fs_usage).",
+      "datasource": {"type": "influxdb", "uid": "dex5m8p7kqc5cf"},
+      "gridPos": {"h": 10, "w": 12, "x": 12, "y": 8},
+      "targets": [
+        {"refId": "A", "query": "SELECT last(\"used_percent\") AS used_percent, last(\"total\") AS total, last(\"used\") AS used FROM \"fs_usage\" WHERE $timeFilter GROUP BY \"mount\"", "rawQuery": true}
+      ],
+      "transformations": [
+        {"id": "organize", "options": {"excludeByName": {"time": true}}}
+      ],
+      "fieldConfig": {"defaults": {"custom": {"align": "auto"}}, "overrides": []}
+    },
+    {
+      "type": "timeseries",
+      "title": "Réseau — RX/TX par interface (octets/s)",
+      "description": "Débits moyens RX/TX par interface (net_if.rx_bps / tx_bps).",
+      "datasource": {"type": "influxdb", "uid": "dex5m8p7kqc5cf"},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+      "targets": [
+        {"refId": "A", "query": "SELECT mean(\"rx_bps\") FROM \"net_if\" WHERE $timeFilter GROUP BY time($__interval), \"name\" fill(null)", "rawQuery": true},
+        {"refId": "B", "query": "SELECT mean(\"tx_bps\") FROM \"net_if\" WHERE $timeFilter GROUP BY time($__interval), \"name\" fill(null)", "rawQuery": true}
+      ],
+      "fieldConfig": {"defaults": {"unit": "binBps"}, "overrides": []}
+    },
+    {
+      "type": "table",
+      "title": "Top processus — mémoire",
+      "description": "Top processus par % mémoire (proc.memory_percent), avec RSS et threads.",
+      "datasource": {"type": "influxdb", "uid": "dex5m8p7kqc5cf"},
+      "gridPos": {"h": 10, "w": 12, "x": 12, "y": 18},
+      "targets": [
+        {"refId": "A", "query": "SELECT last(\"memory_percent\") AS mem_pct, last(\"memory_rss\") AS rss, last(\"threads\") AS threads FROM \"proc\" WHERE $timeFilter GROUP BY \"pid\", \"name\"", "rawQuery": true}
+      ],
+      "transformations": [
+        {"id": "seriesToRows"},
+        {"id": "sortBy", "options": {"fields": {}, "sort": [{"field": "Value", "desc": true}]}}
+      ],
+      "fieldConfig": {"defaults": {"custom": {"align": "auto"}}, "overrides": []}
+    }
+  ]
+}
