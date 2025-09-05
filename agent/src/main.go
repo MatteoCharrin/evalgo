@@ -4,7 +4,17 @@ import (
 	"client/moninfluxdb"
 	"fmt"
 	"net/http"
+	"os"
 )
+
+var HostID = getenv("HOST_ID", "")
+
+func getenv(k, def string) string {
+	if v := os.Getenv(k); v != "" {
+		return v
+	}
+	return def
+}
 
 const DBHost string = "http://172.16.4.78:8181"
 const DBName string = "metrics"
@@ -19,7 +29,13 @@ func main() {
 		panic(err)
 	}
 	defer client.Close()
-
+	// main.go (agent) — juste après avoir obtenu le client Influx
+	host, _ := os.Hostname()
+	if HostID == "" {
+		HostID = host
+	}
+	// pousser l'ID côté lib influx
+	moninfluxdb.SetHostID(HostID)
 	// MaJ de AllDatas
 	go goLoad(client)
 	go goCPU()

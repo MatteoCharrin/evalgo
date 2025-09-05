@@ -14,19 +14,19 @@ import (
 )
 
 var agentsStatic = []string{
-  "http://172.16.4.78:8080",
-  "http://172.16.1.46:8080",
-  "http://172.16.4.80:8080",
+	"http://172.16.4.78:8080",
+	"http://172.16.1.46:8080",
+	"http://172.16.4.83:8080",
 }
 
 func init() {
 	// Endpoints d'agrégation (unifie la vue multi-agents)
-	http.HandleFunc("GET /api/cpus",   aggregate("/cpu"))
+	http.HandleFunc("GET /api/cpus", aggregate("/cpu"))
 	http.HandleFunc("GET /api/memory", aggregate("/mem"))
-	http.HandleFunc("GET /api/disks",  aggregate("/disks"))
-	http.HandleFunc("GET /api/nics",   aggregate("/nics"))
-	http.HandleFunc("GET /api/load",   aggregate("/load"))
-	http.HandleFunc("GET /api/procs",  aggregate("/procs"))
+	http.HandleFunc("GET /api/disks", aggregate("/disks"))
+	http.HandleFunc("GET /api/nics", aggregate("/nics"))
+	http.HandleFunc("GET /api/load", aggregate("/load"))
+	http.HandleFunc("GET /api/procs", aggregate("/procs"))
 
 	// Proxy kill :9090 -> agent ciblé
 	http.HandleFunc("GET /api/agents/{id}/procs/kill/{pid}", proxyKill)
@@ -72,7 +72,7 @@ func aggregate(path string) http.HandlerFunc {
 }
 
 func proxyKill(w http.ResponseWriter, r *http.Request) {
-	id  := r.PathValue("id")
+	id := r.PathValue("id")
 	pid := r.PathValue("pid")
 
 	base, ok := findAgentBaseByID(id, currentAgents(r))
@@ -116,7 +116,9 @@ func splitCSV(s string) []string {
 }
 
 func agentID(base string) string { // id = "host:port"
-	if h := hostPart(base); h != "" { return h }
+	if h := hostPart(base); h != "" {
+		return h
+	}
 	return base
 }
 
@@ -131,14 +133,18 @@ func hostPart(base string) string {
 
 func getJSON(ctx context.Context, url string, dst any) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	client := &http.Client{
 		Transport: &http.Transport{
 			DialContext: (&net.Dialer{Timeout: 1 * time.Second}).DialContext,
 		},
 	}
 	resp, err := client.Do(req)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("%s: %s", url, resp.Status)
@@ -148,7 +154,9 @@ func getJSON(ctx context.Context, url string, dst any) error {
 
 func findAgentBaseByID(id string, agents []string) (string, bool) {
 	for _, a := range agents {
-		if agentID(a) == id { return a, true }
+		if agentID(a) == id {
+			return a, true
+		}
 	}
 	return "", false
 }

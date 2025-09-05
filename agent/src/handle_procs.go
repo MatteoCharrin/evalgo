@@ -1,3 +1,4 @@
+// web_procs.go
 package main
 
 import (
@@ -5,54 +6,100 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
-	"syscall"
 )
 
-func webprocs(w http.ResponseWriter, req *http.Request) {
+// NOTE : on suppose que ces symboles existent ailleurs dans ton projet.
+// - Datas.Procs (liste des process côté DTO)
+// - DTOProcLoad(id int32) (retourne le détail d’un process)
+//// type Example only if you need a stub:
+// var Datas struct{ Procs any }
+// func DTOProcLoad(id int32) (any, error) { return nil, nil }
 
-	j, _ := json.Marshal(Datas.Procs)
-	// Active CORS
+// ---- Helpers CORS & JSON ----
+
+func setCORS(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(j)
-	log.Println("/procs")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 }
 
+func writeJSON(w http.ResponseWriter, status int, v any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(true)
+	_ = enc.Encode(v)
+}
+
+// ---- Handlers ----
+
+// GET /procs
+func webprocs(w http.ResponseWriter, req *http.Request) {
+	setCORS(w)
+	if req.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	// Datas.Procs doit être sérialisable (slice/struct, etc.)
+	writeJSON(w, http.StatusOK, Datas.Procs)
+	log.Println("GET /procs")
+}
+
+// GET /procs/{id}
 func webprocsbypid(w http.ResponseWriter, req *http.Request) {
+	setCORS(w)
+	if req.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
 	idStr := req.PathValue("id")
 	idint, err := strconv.Atoi(idStr)
-	if err != nil {
-		fmt.Fprintf(w, "Erreur dans le processus")
+	if err != nil || idint < 0 {
+		http.Error(w, "Erreur: id invalide", http.StatusBadRequest)
 		return
 	}
 	id := int32(idint)
+
 	out, err := DTOProcLoad(id)
 	if err != nil {
-		fmt.Fprintf(w, "Erreur dans le processus")
+		http.Error(w, "Erreur dans le processus", http.StatusInternalServerError)
 		return
 	}
-	j, _ := json.Marshal(out)
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(j)
-	log.Println("/procs/ID")
+
+	writeJSON(w, http.StatusOK, out)
+	log.Printf("GET /procs/%d\n", id)
 }
 
-// webprocskill: kill process {pid} simply (GET)
+// GET /procs/kill/{pid}
 func webprocskill(w http.ResponseWriter, req *http.Request) {
+	setCORS(w)
+	if req.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
 	pidStr := req.PathValue("pid")
 	pid, err := strconv.Atoi(pidStr)
 	if err != nil || pid <= 0 {
-		fmt.Fprintf(w, "pid invalide")
+		http.Error(w, "pid invalide", http.StatusBadRequest)
 		return
 	}
-	if err := syscall.Kill(pid, syscall.SIGKILL); err != nil {
-		fmt.Fprintf(w, "erreur: %v", err)
+
+	// Version portable: fonctionne aussi sous Windows (pas de syscall.Kill)
+	proc, err := os.FindProcess(pid)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("process introuvable: %v", err), http.StatusNotFound)
 		return
 	}
+	if err := proc.Kill(); err != nil {
+		http.Error(w, fmt.Sprintf("échec kill: %v", err), http.StatusInternalServerError)
+		return
+	}
+
 	fmt.Fprintf(w, "killed %d", pid)
-	log.Println("/procs/kill", pid)
-	log.Println("Test")
+	log.Println("GET /procs/kill", pid)
 }
